@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 // Define the user schema for signup
 const userSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String },
-    email: { type: String, required: true, unique: true, lowercase: true },
+    email: { type: String, required: true, unique: true, lowercase: true,
+        validate: [validator.isEmail, 'Invalid email addresssssss']
+     },
     password: { type: String, 
         required: true,
         minlength: [8, 'Password must be at least 8 characters long.'],
@@ -25,7 +28,9 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
-    photoUrl: { type: String, default: 'https://i.pinimg.com/564x/c7/ab/cd/c7abcd3ce378191a3dddfa4cdb2be46f.jpg' },
+    photoUrl: { type: String,
+        validate: [validator.isURL, 'Invalid URL']
+    },
     skills: { type: [String] }
 }, { timestamps: true });
 

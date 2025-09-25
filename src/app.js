@@ -23,7 +23,6 @@ app.get('/user', async (req, res) => {
     }
 });
 
-
 // Signup API to create a new user
 app.post('/signup', async (req, res) => { 
     // Create a new user instance
@@ -65,14 +64,21 @@ app.delete('/user/:userId', async (req, res) => {
 });
 
 //patch api to update user details
-app.patch('/user', async(req, res) => {
-    const {userId, ...data} = req.body;
+app.patch('/user/:userId', async(req, res) => {
+    const {userId} = req.params;
+    const {...data} = req.body;
     console.log(userId, data);
-    if(!userId){
-        return res.status(400).send('UserId is required');
-    }
     try{
-        const user = await User.findByIdAndUpdate(userId, data, { new: true }, runValidators=true);
+        const ALLOWED_UPDATES = ["skills","photoUrl","password","age","gender"];
+        const isUpdateAllowed = Object.keys(data).every((update) => ALLOWED_UPDATES.includes(update));
+        if(!isUpdateAllowed){
+            throw new Error('Invalid updates!');
+        }
+        //skills not more than 5
+        if(data.skills && data.skills.length > 5){
+            throw new Error('Skills cannot be more than 5');
+        }
+        const user = await User.findByIdAndUpdate(userId, data, { new: true, runValidators: true});
         if(!user){
             return res.status(404).send('User not found');
         }
