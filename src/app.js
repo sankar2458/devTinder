@@ -24,7 +24,6 @@ app.post('/signup', async (req, res) => {
 
         // Hash the password before saving
         user.password = await bcrypt.hash(user.password, 10);
-        console.log(user);
 
         // Save the user to the database
         await user.save();
@@ -57,7 +56,6 @@ app.post('/login', async (req, res) => {
 //get user data from email
 app.get('/user', async (req, res) => {
     const email = req.body.email;
-    //console.log(email);
     try{
         const user = await User.find({ email: email });
         if(user.length === 0){
@@ -84,7 +82,6 @@ app.get('/feed', async (req, res) => {
 //delete user api
 app.delete('/user/:userId', async (req, res) => {
     const {userId} = req.params;
-    console.log(userId);
     try{
         const user = await User.findByIdAndDelete({_id: userId});
         if(!user){
@@ -101,7 +98,6 @@ app.delete('/user/:userId', async (req, res) => {
 app.patch('/user/:userId', async(req, res) => {
     const {userId} = req.params;
     const {...data} = req.body;
-    console.log(userId, data);
     try{
         const ALLOWED_UPDATES = ["skills","photoUrl","password","age","gender"];
         const isUpdateAllowed = Object.keys(data).every((update) => ALLOWED_UPDATES.includes(update));
