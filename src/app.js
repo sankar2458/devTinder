@@ -2,10 +2,57 @@ const express = require('express');
 const app = express();
 const { connectDB } = require('./config/database');
 const User = require('./models/user');
-const user = require('./models/user');
+const { validateSignupData } = require('./utils/validation');
+const bcrypt = require('bcrypt');
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+
+// Signup API to create a new user
+app.post('/signup', async (req, res) => { 
+    try{
+        // Validate incoming data
+        validateSignupData(req);
+
+        // Destructure the request body
+        const { firstName, lastName, email, password } = req.body;
+
+        // Create a new user instance
+        const user = new User({
+            firstName, lastName, email, password
+        });
+
+        // Hash the password before saving
+        user.password = await bcrypt.hash(user.password, 10);
+        console.log(user);
+
+        // Save the user to the database
+        await user.save();
+        res.send('User signed up successfully'  + user);
+    }
+    catch(err){
+        res.status(400).send('ERROR: ' + err.message);
+    }
+});
+
+//Login api to authenticate user
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try{
+        const user = await User.findOne({ email });
+        if(!user){
+            throw new Error('Invalid email');
+        }
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if(!isPasswordMatch){
+            throw new Error('Invalid password');
+        }
+        res.send('Login successful');
+    }
+    catch(err){
+        res.status(400).send('ERROR: ' + err.message);
+    }
+});
 
 //get user data from email
 app.get('/user', async (req, res) => {
@@ -20,19 +67,6 @@ app.get('/user', async (req, res) => {
     }
     catch(err){
         res.status(500).send('Error fetching user: ' + err.message);
-    }
-});
-
-// Signup API to create a new user
-app.post('/signup', async (req, res) => { 
-    // Create a new user instance
-    const user = new User(req.body);
-    try{
-        await user.save();
-        res.send('User signed up successfully');
-    }
-    catch(err){
-        res.status(500).send('Error signing up user: ' + err.message);
     }
 });
 
